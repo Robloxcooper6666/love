@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>與你共赴星河</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;500&display=swap');
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; font-family: 'Noto Sans TC', sans-serif;
+            background: #02040a; color: #fff; cursor: pointer;
+        }
+
+        /* 背景星空 */
+        .night-sky {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, #1b2735 0%, #02040a 100%);
+            z-index: -1;
+        }
+        .star {
+            position: absolute; background: #fff; border-radius: 50%; opacity: 0.5;
+            animation: twinkle var(--duration) infinite ease-in-out;
+        }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+
+        /* 第一階段：打字機內容 */
+        #main-container {
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; height: 100vh; text-align: center;
+            padding: 0 30px; transition: all 2s ease;
+        }
+        h1 { font-weight: 500; letter-spacing: 12px; font-size: 1.8rem; margin-bottom: 25px; }
+        #typewriter { font-weight: 300; line-height: 2.2; letter-spacing: 4px; font-size: 1.05rem; color: rgba(255,255,255,0.7); }
+
+        .action-zone {
+            margin-top: 80px; opacity: 0; transition: opacity 3s ease;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .glowing-star {
+            width: 8px; height: 8px; background: #fff; border-radius: 50%;
+            box-shadow: 0 0 20px #fff, 0 0 40px #7abfff;
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(2); opacity: 1; } 100% { transform: scale(1); opacity: 0.5; } }
+
+        /* 第二階段：情書與手繪愛心 */
+        #final-letter {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: none; opacity: 0; flex-direction: column; justify-content: center;
+            align-items: center; text-align: center; backdrop-filter: blur(15px);
+            background: rgba(0,0,0,0.3);
+        }
+
+        .letter-content p {
+            font-weight: 100; line-height: 2.8; letter-spacing: 5px; font-size: 1.15rem; color: #fdfdfd;
+            margin-bottom: 40px;
+        }
+
+        /* SVG 白色手繪愛心 */
+        .heart-svg {
+            width: 130px; height: 130px;
+        }
+        .heart-path {
+            fill: none;
+            stroke: #ffffff; /* 改成白色 */
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8)); /* 白色光暈 */
+        }
+
+        @keyframes drawHeart {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes beat {
+            0%, 100% { transform: scale(1); opacity: 0.8; filter: drop-shadow(0 0 8px #fff); }
+            50% { transform: scale(1.08); opacity: 1; filter: drop-shadow(0 0 18px #fff); }
+        }
+
+        #music-status {
+            position: fixed; bottom: 20px; width: 100%; text-align: center;
+            font-size: 0.7rem; color: rgba(255,255,255,0.3); letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body onclick="startExperience()">
+
+<div class="night-sky" id="sky"></div>
+
+<div id="main-container">
+    <h1 id="title"></h1>
+    <div id="typewriter"></div>
+    <div class="action-zone" id="nextBtn" onclick="revealLetter(event)">
+        <div class="glowing-star"></div>
+        <p style="margin-top:20px; font-size:0.7rem; letter-spacing:5px; color:rgba(255,255,255,0.4);">點擊這顆為你閃爍的星</p>
+    </div>
+</div>
+
+<div id="final-letter">
+    <div class="letter-content">
+        <p id="final-text"></p>
+
+        <svg class="heart-svg" viewBox="0 0 100 100">
+            <path class="heart-path" id="heart" d="M50,30 C35,10 10,25 10,50 C10,75 50,90 50,90 C50,90 90,75 90,50 C90,25 65,10 50,30" />
+        </svg>
+    </div>
+</div>
+
+<div id="music-status">點擊畫面任何地方開啟</div>
+
+<script>
+    // 星空生成
+    const sky = document.getElementById('sky');
+    for (let i = 0; i < 150; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 2;
+        star.style.width = size + 'px'; star.style.height = size + 'px';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+        sky.appendChild(star);
+    }
+
+    let hasStarted = false;
+    const titleText = "星空之下...";
+    const bodyText = "所有的光芒，\n最終都會匯聚成同一個名字。";
+
+    // 告白文案
+    const finalConfession = "在這個浩瀚的宇宙中，<br>能夠遇見你，是我最幸運的事。<br><br>我想陪你看以後的每一次星空。<br><br><strong>我喜歡你。</strong>";
+
+    function startExperience() {
+        if (!hasStarted) {
+            document.getElementById('music-status').style.opacity = "0";
+            typeText("title", titleText, 200, () => {
+                setTimeout(() => typeText("typewriter", bodyText, 150, () => {
+                    document.getElementById("nextBtn").style.opacity = "1";
+                }), 800);
+            });
+            hasStarted = true;
+        }
+    }
+
+    function typeText(id, text, speed, callback) {
+        let charIndex = 0;
+        const target = document.getElementById(id);
+        function typing() {
+            if (charIndex < text.length) {
+                const char = text.charAt(charIndex);
+                target.innerHTML += char === "\n" ? "<br>" : char;
+                charIndex++;
+                setTimeout(typing, speed);
+            } else if (callback) { callback(); }
+        }
+        typing();
+    }
+
+    function revealLetter(e) {
+        e.stopPropagation();
+        document.getElementById('main-container').style.opacity = '0';
+
+        setTimeout(() => {
+            document.getElementById('main-container').style.display = 'none';
+            const letter = document.getElementById('final-letter');
+            letter.style.display = 'flex';
+
+            setTimeout(() => {
+                letter.style.opacity = '1';
+                letter.style.transition = 'opacity 3s';
+
+                document.getElementById('final-text').innerHTML = finalConfession;
+
+                const heart = document.getElementById('heart');
+                heart.style.animation = "drawHeart 4s ease-in-out forwards";
+
+                setTimeout(() => {
+                    heart.style.animation = "drawHeart 4s ease-in-out forwards, beat 2s infinite 4s ease-in-out";
+                }, 4000);
+
+            }, 100);
+        }, 1500);
+    }
+</script>
+</body>
+</html>
